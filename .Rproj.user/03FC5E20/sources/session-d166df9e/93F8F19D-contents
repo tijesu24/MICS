@@ -1,0 +1,356 @@
+```{r}
+library(haven)
+library(labelled)
+library(clipr)
+library(dplyr)
+library(tidyr)
+```
+
+
+```{r}
+fs_ng <-
+read_sav("Nigeria MICS6 Datasets/Nigeria MICS6 SPSS Datasets/fs.sav")
+hl_ng <-
+read_sav("Nigeria MICS6 Datasets/Nigeria MICS6 SPSS Datasets/hl.sav")
+hh_ng <-
+read_sav("Nigeria MICS6 Datasets/Nigeria MICS6 SPSS Datasets/hh.sav")
+wm_ng <-
+read_sav("Nigeria MICS6 Datasets/Nigeria MICS6 SPSS Datasets/wm.sav")
+
+mn_ng <-
+read_sav("Nigeria MICS6 Datasets/Nigeria MICS6 SPSS Datasets/mn.sav")
+
+fs <-
+read_sav("Benin MICS6 Datasets/Benin MICS6 SPSS Datasets/fs.sav")
+hl <-
+read_sav("Benin MICS6 Datasets/Benin MICS6 SPSS Datasets/hl.sav")
+hh <-
+read_sav("Benin MICS6 Datasets/Benin MICS6 SPSS Datasets/hh.sav")
+wm <-
+read_sav("Benin MICS6 Datasets/Benin MICS6 SPSS Datasets/wm.sav")
+
+mn <-
+read_sav("Benin MICS6 Datasets/Benin MICS6 SPSS Datasets/mn.sav")
+
+# fg <-
+# read_sav("Benin MICS6 Datasets/Benin MICS6 SPSS Datasets/fg.sav")
+```
+
+## Extract variable names and labels
+```{r}
+# Extract variable names and labels
+current_df = wm
+variable_names <- names(current_df)
+variable_labels <- var_label(current_df)
+
+# Create a data frame with two columns
+data_frame <-
+data.frame(variable_name = variable_names,
+variable_label = unname(unlist(variable_labels[variable_names])))
+# data_frame$variable_label
+write_clip(data_frame)
+```
+
+
+## Get unique values and labels for a file
+```{r}
+# Get unique values and labels for a file
+# Specify the column name
+column_names <- c("VT1", "VT2", "VT3", "VT5", "VT6", "VT7A", "VT7B", "VT7X", "VT7NR", "VT8", "VT9", "VT10", "VT11", "VT12", "VT13", "VT14", "VT17", "VT18A", "VT18B", "VT18X", "VT18NR", "VT19")  # Replace with the actual column name
+# column_name = "survey"
+
+vals = sapply(column_names, function(column_name){
+value_labels <- val_labels(current_df[[column_name]])
+
+value_labels = paste0(paste0(unname(value_labels), " - ", names(value_labels)), collapse = "\n")
+
+
+cat(paste0(column_name,"\n", value_labels, "\n"))
+
+return(value_labels)
+})
+
+write_clip(paste0(names(vals),"=>\n", vals))
+
+
+```
+## If column is in dataframe
+```{r}
+# Specify the column name
+column_names <- c("CB3", "CB4", "CB5A", "CB5B", "CB7", "CB8A", "CB8B", "religion", "caretakerdis")  # Replace with the actual column name
+
+# Generate the desired vector
+result_vector <-ifelse(column_names %in% names(current_df) , "Yes", "No")
+write_clip((paste(result_vector, collapse = "\n")))
+print(paste("Number of No's:",
+            sum(result_vector == "No")))
+```
+
+### Sample sizes
+```{r}
+current_df = mn
+print(nrow(current_df))
+
+temp = count(current_df, HH1,HH2,LN)
+print(range(temp$n))
+```
+
+```{r}
+# 1. Define a function to create a unique identifier for each individual
+get_individual_id <- function(df) {
+  paste(df$HH1, df$HH2, df$LN, sep = "_")
+}
+
+# 2. Create individual identifiers for each dataframe
+fs_ids <- get_individual_id(fs)
+wm_ids <- get_individual_id(wm)
+mn_ids <- get_individual_id(mn)
+hl_ids <- paste(hl$HH1, hl$HH2, hl$HL1, sep = "_")
+
+# 3. Find the intersection of the three sets of identifiers (common individuals)
+# common_ids <- intersect(fs_ids, union(wm_ids, mn_ids))
+
+common_ids <- intersect(intersect(fs_ids, union(wm_ids, mn_ids)), hl_ids)
+
+# 4. Count the number of elements in the set of common identifiers
+length(common_ids)
+
+```
+
+
+Why is it so small
+```{r}
+sum(fs$CB3 >= 15, na.rm = T)
+```
+
+
+Check for adults 17 and younger too
+```{r}
+temp = rbind(select(wm, HH1,HH2,LN, WB4) %>% rename(Age = "WB4"), 
+             select(mn, HH1,HH2,LN, MWB4) %>% rename(Age = "MWB4"))
+nrow(temp)
+sum(temp$Age <= 17, na.rm = T)
+```
+
+
+### Pre: For translation
+```{r}
+split_for_translation = function(input) {
+        # Split the string into rows and columns using the "\n" separator
+        data_split <- strsplit(input, split = "\n")[[1]]
+        data_split = sapply(data_split, function(x)
+                strsplit(x, split = " - ")[[1]])
+        data_df = t(unname(data_split))
+        
+        data_df = as.data.frame(data_df)
+        names(data_df) = c("code", "name")
+        
+        return (data_df)
+}
+```
+
+
+```{r}
+temp = "11 - Religions endogènes/vodoun
+12 - Autres traditionnelles
+21 - Islam
+31 - Catholique
+32 - Protestant méthodiste
+33 - Autre protestant
+34 - Céleste
+35 - Evangélique
+36 - Autre chrétien
+96 - Autre religion
+97 - Sans religion
+99 - Manquant"
+
+
+
+t1emp = "11 - Endogenous religions/vodun
+12 - Other traditional
+21 - Islam
+31 - Catholic
+32 - Methodist Protestant
+33 - Other Protestant
+34 - Celeste
+35 - Evangelical
+36 - Other Christian
+96 - Other religion
+97 - Without religion
+99 - Missing"
+```
+
+## For translation final
+```{r}
+# You need text in original and translated
+# org_ng_trans = ""
+
+temp = strsplit(org_ng_trans, ">>")[[1]]
+original = temp[1]
+translated = temp[2]
+
+combine_translation_with_original = function(x){
+original = split_for_translation(original)
+translated = split_for_translation(translated)
+
+t2emp = left_join(translated, original, by = "code")
+
+t2emp = (paste(paste0(t2emp$code, " - ", t2emp$name.x,  " (", t2emp$name.y, ")"), collapse = "\n"))
+
+return (t2emp)
+}
+
+
+```
+
+
+
+```{r}
+original_overall = "VT1=>
+1 - OUI
+2 - NON
+8 - NSP
+9 - NON REPONSE
+VT2=>
+1 - OUI, DURANT LES DERNIERS 12 MOIS
+2 - NON, IL Y A PLUS DE 12 MOIS
+8 - NSP / NE SE SOUVIENT PAS
+9 - NON REPONSE
+VT3=>
+1 - UNE FOIS
+2 - DEUX FOIS
+3 - TROIS FOIS OU PLUS
+8 - NSP / NE SE SOUVIENT PAS
+9 - NON REPONSE
+VT5=>
+1 - OUI
+2 - NON
+8 - NSP / PAS SUR
+9 - NON REPONSE
+VT6=>
+1 - OUI
+2 - NON
+8 - NSP / PAS SUR
+9 - NON REPONSE"
+
+
+translated_overall = "VT1=>
+1 - YES
+2 - NO
+8 - DK
+9 - NO RESPONSE
+VT2=>
+1 - YES, DURING THE LAST 12 MONTHS
+2 - NO, MORE THAN 12 MONTHS AGO
+8 - DK / DON’T REMEMBER
+9 - NO RESPONSE
+VT3=>
+1 - ONCE
+2 - TWICE
+3 - THREE OR MORE TIMES
+8 - DK / DON’T REMEMBER
+9 - NO RESPONSE
+VT5=>
+1 - YES
+2 - NO
+8 - DK / NOT SURE
+9 - NO RESPONSE
+VT6=>
+1 - YES
+2 - NO
+8 - DK / NOT SURE
+9 - NO RESPONSE"
+```
+
+
+```{r}
+# Function to split the overall input by variable sections
+split_for_translation <- function(input) {
+  # Split the input into sections by variable names followed by =>
+  sections <- strsplit(input, "(?<=\\n|^)\\w+=>(?=\\n)", perl = TRUE)[[1]]
+  sections = sections[sections != ""]
+  
+  # Extract variable names
+  variable_names <- regmatches(input, gregexpr("\\w+=>", input, perl = TRUE))[[1]]
+  variable_names <- gsub("=>", "", variable_names)
+  
+  # Create a list to hold the data frames for each variable
+  data_list <- list()
+  
+  for (i in seq_along(sections)) {
+    # Split each section into lines
+    lines <- strsplit(sections[[i]], "\n")[[1]]
+    lines <- lines[lines != ""]  # Remove empty lines
+    
+    # Split each line into code and name
+    data_split <- t(sapply(lines, function(x) strsplit(x, " - ")[[1]]))
+    data_df <- as.data.frame(data_split, stringsAsFactors = FALSE)
+    
+    
+    # Assign column names
+    names(data_df) <- c("code", "name")
+    
+    # Add the data frame to the list with the variable name as the key
+    data_list[[variable_names[i]]] <- data_df
+  }
+  
+  return(data_list)
+}
+
+# Function to combine original and translated sections
+combine_translation_with_original = function(original, translated) {
+  original_list = split_for_translation(original)
+  translated_list = split_for_translation(translated)
+  
+  combined_list <- mapply(function(orig, trans) {
+    t2emp <- left_join(trans, orig, by = "code")
+    t2emp <- paste(paste0(t2emp$code, " - ", t2emp$name.x, " (", t2emp$name.y, ")"), collapse = "\n")
+    return(t2emp)
+  }, original_list, translated_list, SIMPLIFY = FALSE)
+  
+  combined_result <- paste0(names(combined_list), "=>\n", combined_list, collapse = "\n\n")
+  
+  return(combined_result)
+}
+
+# Run the function
+result <- combine_translation_with_original(original_overall, translated_overall)
+cat(result)
+```
+
+
+```{r}
+combine_translations <- function(original_overall, translated_overall) {
+  # Split the overall strings into individual variables
+  original_vars <- strsplit(original_overall, split = "\n(?=[A-Z])")[[1]][-1]
+  translated_vars <- strsplit(translated_overall, split = "\n(?=[A-Z])")[[1]][-1]
+  
+  # Initialize an empty vector to store the results
+  results <- c()
+  
+  # Loop through each variable
+  for (i in seq_along(original_vars)) {
+    # Extract the variable name
+    var_name <- gsub("=.*", "", original_vars[i])
+    
+    # Extract the options for the current variable
+    original_opts <- gsub(paste0(var_name, "=>\n"), "", original_vars[i])
+    translated_opts <- gsub(paste0(var_name, "=>\n"), "", translated_vars[i])
+    
+    # Apply your existing functions
+    original_df <- split_for_translation(original_opts)
+    translated_df <- split_for_translation(translated_opts)
+    combined_opts <- combine_translation_with_original(original_df, translated_df)
+    
+    # Format the result for the current variable
+    result <- paste0(var_name, "=>\n", combined_opts, "\n")
+    
+    # Add the result to the overall results
+    results <- c(results, result)
+  }
+  
+  # Return the overall results
+  return(paste(results, collapse = ""))
+}
+```
+

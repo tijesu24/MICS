@@ -1,0 +1,143 @@
+"0","# Get unique values and labels for a file"
+"0","# Specify the column name"
+"0","column_names <- c(""VT1"", ""VT2"", ""VT3"", ""VT5"", ""VT6"", ""VT7A"", ""VT7B"", ""VT7X"", ""VT7NR"", ""VT8"", ""VT9"", ""VT10"", ""VT11"", ""VT12"", ""VT13"", ""VT14"", ""VT17"", ""VT18A"", ""VT18B"", ""VT18X"", ""VT18NR"", ""VT19"")  # Replace with the actual column name"
+"0","# column_name = ""survey"""
+"0",""
+"0","vals = sapply(column_names, function(column_name){"
+"0","value_labels <- val_labels(current_df[[column_name]])"
+"0",""
+"0","value_labels = paste0(paste0(unname(value_labels), "" - "", names(value_labels)), collapse = ""\n"")"
+"0",""
+"0",""
+"0","cat(paste0(column_name,""\n"", value_labels, ""\n""))"
+"0",""
+"0","return(value_labels)"
+"0","})"
+"1","VT1
+1 - OUI
+2 - NON
+8 - NSP
+9 - NON REPONSE
+"
+"1","VT2
+1 - OUI, DURANT LES DERNIERS 12 MOIS
+2 - NON, IL Y A PLUS DE 12 MOIS
+8 - NSP / NE SE SOUVIENT PAS
+9 - NON REPONSE
+"
+"1","VT3
+1 - UNE FOIS
+2 - DEUX FOIS
+3 - TROIS FOIS OU PLUS
+8 - NSP / NE SE SOUVIENT PAS
+9 - NON REPONSE
+"
+"1","VT5
+1 - OUI
+2 - NON
+8 - NSP / PAS SUR
+9 - NON REPONSE
+"
+"1","VT6
+1 - OUI
+2 - NON
+8 - NSP / PAS SUR
+9 - NON REPONSE
+"
+"1","VT7A
+? - NON REPONSE
+A - OUI, UN COUTEAU
+"
+"1","VT7B
+? - NON REPONSE
+B - OUI, UN REVOLVER
+"
+"1","VT7X
+? - NON REPONSE
+X - OUI, QUELQUE CHOSE D’AUTRE
+"
+"1","VT7NR
+? - NON REPONSE
+"
+"1","VT8
+1 - OUI, REPONDANTE A DECLARE
+2 - OUI, QUELQU’UN D’AUTRE A DECLARE
+3 - NON, PAS DECLARE
+8 - NSP / PAS SUR
+9 - NON REPONSE
+"
+"1","VT9
+1 - OUI
+2 - NON
+8 - NSP
+9 - NON REPONSE
+"
+"1","VT10
+1 - OUI, DURANT LES DERNIERS 12 MOIS
+2 - NON, IL Y A PLUS DE 12 MOIS
+8 - NSP / NE SE SOUVIENT PAS
+9 - NON REPONSE
+"
+"1","VT11
+1 - UNE FOIS
+2 - DEUX FOIS
+3 - TROIS FOIS OU PLUS
+8 - NSP / NE SE SOUVIENT PAS
+9 - NON REPONSE
+"
+"1","VT12
+11 - A SON DOMICILE
+12 - DANS UN AUTRE DOMICILE
+21 - IN THE STREET
+22 - DANS LES TRANSPORTS PUBLICS
+23 - DANS UN RESTAURANT / CAFE / BAR
+26 - AUTRE PUBLIC
+31 - A L’ECOLE
+32 - SUR LE LIEU DE TRAVAIL
+96 - AUTRE PLACE
+99 - NON REPONSE
+"
+"1","VT13
+1 - UNE PERSONNE
+2 - DEUX PERSONNES
+3 - TROIS PERSONNES OU PLUS
+8 - NSP / NE SE SOUVIENT PAS
+9 - NON REPONSE
+"
+"1","VT14
+1 - OUI
+2 - NON
+8 - NSP / PAS SUR
+9 - NON REPONSE
+"
+"1","VT17
+1 - OUI
+2 - NON
+8 - NSP / PAS SUR
+9 - NON REPONSE
+"
+"1","VT18A
+? - NON REPONSE
+A - OUI, UN COUTEAU
+"
+"1","VT18B
+? - NON REPONSE
+B - OUI, UN REVOLVER
+"
+"1","VT18X
+? - NON REPONSE
+X - OUI, QUELQUE CHOSE D’AUTRE
+"
+"1","VT18NR
+? - NON REPONSE
+"
+"1","VT19
+1 - OUI, REPONDANTE A DECLARE
+2 - OUI, QUELQU’UN D’AUTRE A DECLARE
+3 - NON, PAS DECLARE
+8 - NSP / PAS SUR
+9 - NON REPONSE
+"
+"0","write_clip(paste0(names(vals),""=>\n"", vals))"
+"0",""
+"0",""
